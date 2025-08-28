@@ -1,6 +1,5 @@
 package regera.app.springai.reviewer;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.*;
 import com.fasterxml.jackson.databind.*;
@@ -39,10 +38,12 @@ public class GeminiReviewer {
             return;
         }
 
+        String hehe = "";
+        System.out.println("hehehe");
+
         List<FileDiff> diffs = splitByFile(rawDiff);
         diffs = filterFiles(diffs);
 
-        // chunking theo giới hạn ký tự
         List<List<FileDiff>> batches = batchByCharLimit(diffs, MAX_PROMPT_CHARS);
 
         List<Finding> findings = new ArrayList<>();
@@ -50,7 +51,6 @@ public class GeminiReviewer {
             String prompt = buildPrompt(batch);
             List<Finding> part = callGemini(prompt);
             findings.addAll(part);
-            // sleep nhẹ tránh rate-limit
             Thread.sleep(400L);
         }
 
@@ -87,7 +87,6 @@ public class GeminiReviewer {
             String p = f.path;
             if (!ALLOW.matcher(p).find()) continue;
             if (DENY.matcher(p).find()) continue;
-            // bỏ qua file quá to (heuristic)
             if (f.content.length() > 120_000) continue;
             out.add(f);
         }
@@ -193,7 +192,7 @@ public class GeminiReviewer {
     }
 
     static String renderMarkdown(List<Finding> list) {
-        if (list.isEmpty()) return "### AI Review\n\n✅ No issues found in changed lines.";
+        if (list.isEmpty()) return "### 🤖 Gemini Review\n\n✅ No issues found in changed lines.";
 
         StringBuilder sb = new StringBuilder();
         sb.append("### AI Review (Gemini)\n\n");
