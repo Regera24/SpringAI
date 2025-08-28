@@ -172,7 +172,6 @@ public class GeminiReviewer {
                 .post(RequestBody.create(M.writeValueAsBytes(body), MediaType.parse("application/json")))
                 .build();
 
-        // simple retry
         for (int i = 0; i < 3; i++) {
             try (Response resp = HTTP.newCall(req).execute()) {
                 if (resp.code() == 429 || resp.code() >= 500) {
@@ -180,30 +179,31 @@ public class GeminiReviewer {
                     continue;
                 }
                 if (!resp.isSuccessful()) throw new IOException("Gemini error: " + resp);
-                JsonNode root = M.readTree(Objects.requireNonNull(resp.body()).bytes());
-                String text = root.at("/candidates/0/content/parts/0/text").asText("");
-                if (text.isBlank()) return List.of();
-                // LLM có thể bọc JSON trong markdown → bóc ra
-                String json = text.trim();
-                if (json.startsWith("```")) {
-                    int s = json.indexOf('{');
-                    int e = json.lastIndexOf('}');
-                    if (s >= 0 && e > s) json = json.substring(s, e + 1);
+
+                String raw = Objects.requireNonNull(resp.body()).string();
+                log.info("Gemini raw response:\n{}", raw);
+
+                // Trả thẳng text, không parse JSON
+                // Lấy tất cả text trong candidates/parts
+                JsonNode root = M.readTree(raw);
+                StringBuilder sb = new StringBuilder();
+                for (JsonNode candidate : root.path("candidates")) {
+                    for (JsonNode part : candidate.path("content").path("parts")) {
+                        String txt = part.path("text").asText("");
+                        if (!txt.isBlank()) sb.append(txt).append("\n\n");
+                    }
                 }
-                Map<String, Object> parsed = M.readValue(json, new TypeReference<>(){});
-                List<Map<String, Object>> items = (List<Map<String, Object>>) parsed.getOrDefault("findings", List.of());
-                List<Finding> out = new ArrayList<>();
-                for (Map<String, Object> it : items) {
-                    out.add(new Finding(
-                            String.valueOf(it.getOrDefault("file", "")),
-                            it.get("line") == null ? null : Integer.valueOf(String.valueOf(it.get("line"))),
-                            String.valueOf(it.getOrDefault("severity", "INFO")),
-                            String.valueOf(it.getOrDefault("title", "")),
-                            String.valueOf(it.getOrDefault("detail", "")),
-                            String.valueOf(it.getOrDefault("suggestion", ""))
-                    ));
-                }
-                return out;
+
+                // Trả findings kiểu "fake" với suggestion chứa toàn bộ text
+                if (sb.isEmpty()) return List.of();
+                return List.of(new Finding(
+                        "RAW_OUTPUT",
+                        null,
+                        "INFO",
+                        "Gemini raw response",
+                        "Gemini did not return structured JSON. See suggestion for raw text.",
+                        sb.toString()
+                ));
             }
         }
         return List.of();
