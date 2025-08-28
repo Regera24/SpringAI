@@ -31,6 +31,7 @@ public class GeminiReviewer {
     record Finding(String file, Integer line, String severity, String title, String detail, String suggestion) {}
 
     public static void main(String[] args) throws Exception {
+        log.info("Starting Gemini code reviewer...");
         final String rawDiff = Files.exists(Path.of(DIFF_FILE)) ? Files.readString(Path.of(DIFF_FILE)) : "";
         if (rawDiff.isBlank()) {
             log.info("### AI Review\n\n_No changes detected._");
