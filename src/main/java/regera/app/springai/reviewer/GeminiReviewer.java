@@ -3,7 +3,6 @@ package regera.app.springai.reviewer;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.*;
 import com.fasterxml.jackson.databind.*;
-import com.fasterxml.jackson.core.type.TypeReference;
 
 import java.io.IOException;
 import java.nio.file.*;
@@ -38,8 +37,8 @@ public class GeminiReviewer {
             return;
         }
 
-        String hehehe = "";
-        System.out.println("hehehehe");
+        String BLOOOOgg = "fdf";
+        System.out.println("BLOOOOOO");
 
         List<FileDiff> diffs = splitByFile(rawDiff);
         diffs = filterFiles(diffs);
