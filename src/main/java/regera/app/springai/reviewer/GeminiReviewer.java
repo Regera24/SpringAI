@@ -114,7 +114,7 @@ public class GeminiReviewer {
     static String buildPrompt(List<FileDiff> batch) {
         StringBuilder sb = new StringBuilder();
         sb.append("""
-      You are a senior code reviewer focusing on **bugs, security, performance, correctness, maintainability**.
+      You are a senior code reviewer focusing on **bugs, security, performance, correctness, maintainability, code smells**.
       Return STRICTLY the following JSON schema:
 
       {
@@ -134,6 +134,7 @@ public class GeminiReviewer {
       - Consider OWASP, null-safety, input validation, resource leaks, concurrency issues.
       - Prefer language idioms and team's clean code practices when evident.
       - Only comment on changed hunks implied by the diff.
+      - Using java conventions as default if uncertain and also check for code smells.
 
       Below are diffs (unified=0). Review only what changed.
 
