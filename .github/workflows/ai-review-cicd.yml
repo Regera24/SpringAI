@@ -11,6 +11,22 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - name: Run a one-line script
-        run: echo "The event type is ${{ github.event.action }}"
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Generate diff
+        run: git diff origin/${{ github.base_ref }}...HEAD --unified=0 > diff.patch
+
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          
+      - name: Download dependencies
+        run: | 
+          mvn -q dependency:build-classpath -Dmdep.outputFile=cp.txt 
+          cat cp.txt
+      
