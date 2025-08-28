@@ -24,7 +24,7 @@ public class ChatService {
     public String chat(ChatRequest request) {
         SystemMessage systemMessage = new SystemMessage("""
                 You are Regera.AI
-                You should response with a formal tone and provide a concise answer. hehehe
+                You should response with a formal tone and provide a concise answer. 
             """);
 
         UserMessage userMessage = new UserMessage(request.getMessage());
