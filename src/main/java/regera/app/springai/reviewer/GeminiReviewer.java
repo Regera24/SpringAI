@@ -37,9 +37,6 @@ public class GeminiReviewer {
             return;
         }
 
-        String BLOOOOgg = "fdf";
-        System.out.println("BLOOOOOO");
-
         List<FileDiff> diffs = splitByFile(rawDiff);
         diffs = filterFiles(diffs);
 
