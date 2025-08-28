@@ -38,8 +38,8 @@ public class GeminiReviewer {
             return;
         }
 
-        String hehe = "";
-        System.out.println("hehehe");
+        String hehehe = "";
+        System.out.println("hehehehe");
 
         List<FileDiff> diffs = splitByFile(rawDiff);
         diffs = filterFiles(diffs);
@@ -114,31 +114,48 @@ public class GeminiReviewer {
     static String buildPrompt(List<FileDiff> batch) {
         StringBuilder sb = new StringBuilder();
         sb.append("""
-      You are a senior code reviewer focusing on **bugs, security, performance, correctness, maintainability, code smells**.
-      Return STRICTLY the following JSON schema:
-
-      {
-        "findings": [
-          {
-            "file": "string",           // relative path
-            "line": 123,                // 1-based line if identifiable, else null
-            "severity": "INFO|MINOR|MAJOR|CRITICAL",
-            "title": "short title",
-            "detail": "what & why (concise, actionable)",
-            "suggestion": "optional code suggestion or steps"
-          }
-        ]
-      }
-
-      House rules:
-      - Consider OWASP, null-safety, input validation, resource leaks, concurrency issues.
-      - Prefer language idioms and team's clean code practices when evident.
-      - Only comment on changed hunks implied by the diff.
-      - Using java conventions as default if uncertain and also check for code smells.
-
-      Below are diffs (unified=0). Review only what changed.
-
-      """);
+        You are a **senior code reviewer**. 
+        Your job: analyze the following diffs and report only on the **changed lines**, focusing on:
+        - **Bugs** (logic errors, null safety, concurrency, resource leaks, incorrect API usage).
+        - **Security** (OWASP Top 10, injections, unsafe deserialization, weak crypto).
+        - **Performance** (unnecessary complexity, inefficient loops, memory issues).
+        - **Correctness** (violations of language contracts, edge cases).
+        - **Maintainability & Clean Code** (readability, duplication, naming, cohesion).
+        - **Code smells** explicitly including:
+            * Long methods or classes
+            * Deeply nested conditionals
+            * Duplicated code
+            * Magic numbers / hardcoded values
+            * Unused variables, imports, or parameters
+            * Poor naming conventions
+            * Excessive comments or commented-out code
+            * Primitive obsession (raw strings, ints where enums/classes are better)
+            * Swallowing exceptions (empty catch)
+            * Logging issues (missing logs, sensitive data in logs)
+            * Inconsistent formatting or style
+            
+        Return STRICTLY the following JSON schema:
+        {
+          "findings": [
+            {
+              "file": "string",           // relative path
+              "line": 123,                // 1-based line if identifiable, else null
+              "severity": "INFO|MINOR|MAJOR|CRITICAL",
+              "title": "short title",
+              "detail": "what & why (concise, actionable)",
+              "suggestion": "optional code suggestion or fix"
+            }
+          ]
+        }
+    
+        Rules:
+        - Only comment on the changed hunks from the diff.
+        - If a smell cannot be proven from diff alone, skip it.
+        - Be concise but actionable.
+        - If unsure about the severity, default to MINOR.
+    
+        Below are the diffs (unified=0):
+        """);
         for (FileDiff f : batch) {
             sb.append("\n===== FILE: ").append(f.path).append(" =====\n");
             sb.append(f.content).append("\n");
