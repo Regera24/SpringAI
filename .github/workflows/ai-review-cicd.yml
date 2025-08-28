@@ -29,4 +29,21 @@ jobs:
         run: | 
           mvn -q dependency:build-classpath -Dmdep.outputFile=cp.txt 
           cat cp.txt
+          
+      - name: Compile GeminiReviewer
+        run: |
+          mkdir -p target/classes
+          javac -cp "$(cat cp.txt)" -d target/classes src/main/java/regera/app/springai/reviewer/GeminiReviewer.java
+
+      - name: Run GeminiReviewer
+        run: |
+          java -cp "target/classes:$(cat cp.txt)" regera.app.springai.reviewer.GeminiReviewer > review.md
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+
+      - name: Post review comment
+        uses: marocchino/sticky-pull-request-comment@v2
+        with:
+          header: "🤖 AI Code Review"
+          path: review.md
       
